@@ -4,10 +4,25 @@ from math import ceil, sqrt
 from os import get_terminal_size, path, makedirs
 from time import time, sleep
 from keyboard import is_pressed
+from json import dump, load
+
+config_file_path = "config.json"
 
 if not path.exists("tmp"):
     makedirs("tmp")
 
+if not path.isfile(config_file_path):
+    config = {
+        "paddle_length_modifier": 0.2,
+        "paddle_speed": 0.4,
+        "ball_speed": 1.5,
+        "enemy_difficulty": 2.2,
+        "score_condition": 3,
+        "framerate": 120
+    }
+
+    with open(config_file_path, "w") as file:
+        dump(config, file)
 
 logging.basicConfig(
     filename="tmp/log.log",
@@ -416,13 +431,17 @@ def main(stdscr):
     curses.cbreak()
     stdscr.clear()
 
+    with open(config_file_path, "r") as file:
+        config = load(file)
+
     WIDTH, HEIGHT = generate_playing_area(stdscr)
 
     PLAYING_WIDTH = ceil((WIDTH - 2) / 2) - 1
     PLAYING_HEIGHT = HEIGHT - 3
     BOUNDS = Vector2(WIDTH, PLAYING_HEIGHT)
 
-    PADDLE_LENGTH_MODIFIER = 0.2
+    PADDLE_LENGTH_MODIFIER = config["paddle_length_modifier"]
+    PADDLE_SPEED = config["paddle_speed"]
     PADDLE_LENGTH = (
         ceil(PLAYING_HEIGHT * PADDLE_LENGTH_MODIFIER)
         if ceil(PLAYING_HEIGHT * PADDLE_LENGTH_MODIFIER) % 2 == 1
@@ -431,13 +450,12 @@ def main(stdscr):
 
     PADDLE_X_POS = ceil(PLAYING_WIDTH * 0.2)
     PADDLE_Y_POS = ceil(PLAYING_HEIGHT / 2)
-    PADDLE_SPEED = 0.4
 
-    ENEMY_DIFFICULTY = 2.2
-    BEST_OF = 3
+    ENEMY_DIFFICULTY = config["enemy_difficulty"]
+    BEST_OF = config["score_condition"]
 
-    BALL_SPEED = 1.5
-    FRAMERATE = 120
+    BALL_SPEED = config["ball_speed"]
+    FRAMERATE = config["framerate"]
 
     global player_score, opponent_score, scored, info, game_end
     player_score = 0
